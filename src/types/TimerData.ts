@@ -7,4 +7,5 @@ interface TimerData {
   totalHour?: number;
   totalMinute?: number;
   totalSecond?: number;
+  isTimerActive: boolean;
 }

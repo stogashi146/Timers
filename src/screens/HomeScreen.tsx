@@ -23,17 +23,28 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
   const [minutes, setMinutes] = useState(59);
   const [seconds, setSeconds] = useState(58);
   const navigation = useNavigation();
-  const toggleStartTimer = () => {
+  const onToggleStartTimer = (index: number) => {
+    const updatedTimers = [...timers];
+    updatedTimers[index].isTimerActive = !updatedTimers[index].isTimerActive;
+    setTimers(updatedTimers);
+
     setIsTimerActive(!isTimerActive);
   };
   console.log(timers);
 
   // タイマーのリセット関数
-  const resetTimer = () => {
+  const resetTimer = (index: number) => {
     setHours(0);
     setMinutes(0);
     setSeconds(0);
     setIsTimerActive(false);
+
+    const updatedTimers = [...timers];
+    updatedTimers[index].isTimerActive = false;
+    updatedTimers[index].hours = 0;
+    updatedTimers[index].minutes = 0;
+    updatedTimers[index].seconds = 0;
+    setTimers(updatedTimers);
   };
 
   const countUpTimer = () => {
@@ -98,7 +109,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
     // クリーンアップ関数を返す
     // コンポーネントがアンマウントされるか、isTimerActiveが変更されると実行される
     return () => clearInterval(interval);
-  }, [isTimerActive]); // isTimerActiveが変更されるたびにuseEffectを再実行
+  }, [timers]); // isTimerActiveが変更されるたびにuseEffectを再実行
+
+  
 
   // フォーム周りテスト
   const [modalVisible, setModalVisible] = useState<boolean>(false);
@@ -115,6 +128,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
       totalHour: 0,
       totalMinute: 0,
       totalSecond: 0,
+      isTimerActive: false,
     };
     setTimers([...timers, addTimerData]);
   };
@@ -126,9 +140,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
     return maxId;
   };
 
+  // if (!timers) {
+  //   return (
+  //     <View style={{ flex: 1 }}>
+  //       <Text>タイマーがありません</Text>
+  //     </View>
+  //   );
+  // }
+
   return (
     <ScrollView>
-      <View style={styles.timerListItem}>
+      {/* <View style={styles.timerListItem}>
         <View style={styles.leftContainer}>
           <Text style={styles.timerTitleText}>あああ</Text>
           <Text style={styles.timerCountTitleText}>
@@ -144,7 +166,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
               style={styles.resetIcon}
             />
           </TouchableOpacity>
-          <TouchableOpacity onPress={toggleStartTimer} style={{ width: 30 }}>
+          <TouchableOpacity onPress={onToggleStartTimer} style={{ width: 30 }}>
             {isTimerActive ? (
               <FontAwesome
                 name="stop"
@@ -162,8 +184,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
             )}
           </TouchableOpacity>
         </View>
-      </View>
-      {timers.map((timer) => {
+      </View> */}
+      {timers.map((timer, index) => {
         return (
           <View style={styles.timerListItem} key={timer.id}>
             <View style={styles.leftContainer}>
@@ -173,7 +195,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
               </Text>
             </View>
             <View style={styles.rightContainer}>
-              <TouchableOpacity onPress={resetTimer}>
+              <TouchableOpacity onPress={() => resetTimer(index)}>
                 <Feather
                   name="refresh-cw"
                   size={28}
@@ -182,10 +204,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
                 />
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={toggleStartTimer}
+                onPress={() => onToggleStartTimer(index)}
                 style={{ width: 30 }}
               >
-                {isTimerActive ? (
+                {timer.isTimerActive ? (
                   <FontAwesome
                     name="stop"
                     size={28}
