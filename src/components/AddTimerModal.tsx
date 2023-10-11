@@ -7,24 +7,39 @@ import {
   TouchableOpacity,
   Modal,
   StyleSheet,
+  Alert,
 } from "react-native";
 
 interface AddTimerModalProps {
   visible: boolean;
   onClose: () => void;
-  onSave: (value: string) => void;
+  onAdd: (timerTitle: string) => void;
 }
 
 const AddTimerModal: React.FC<AddTimerModalProps> = ({
   visible,
   onClose,
-  onSave,
+  onAdd,
 }) => {
   const [inputValue, setInputValue] = useState("");
 
   const handleSave = () => {
-    onSave(inputValue);
+    console.log("inputValue");
+    console.log(inputValue);
+
+    if (!inputValue) {
+      Alert.alert("タイマーの名称を入力してください");
+      return;
+    }
+
+    onAdd(inputValue);
     onClose();
+    setInputValue("");
+  };
+
+  const handleClose = () => {
+    onClose();
+    setInputValue("");
   };
 
   return (
@@ -39,12 +54,19 @@ const AddTimerModal: React.FC<AddTimerModalProps> = ({
             style={styles.input}
           />
           <View>
-            <TouchableOpacity onPress={handleSave} style={styles.buttonContent}>
-              <Button size="md" titleStyle={styles.buttonText}>
-                保存
+            <TouchableOpacity style={styles.buttonContent}>
+              <Button
+                size="md"
+                titleStyle={styles.buttonText}
+                onPress={handleSave}
+              >
+                追加
               </Button>
             </TouchableOpacity>
-            <TouchableOpacity onPress={onClose} style={styles.buttonContent}>
+            <TouchableOpacity
+              style={styles.buttonContent}
+              onPress={handleClose}
+            >
               <Button
                 title="閉じる"
                 type="outline"

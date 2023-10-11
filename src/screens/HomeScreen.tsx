@@ -26,6 +26,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
   const toggleStartTimer = () => {
     setIsTimerActive(!isTimerActive);
   };
+  console.log(timers);
 
   // タイマーのリセット関数
   const resetTimer = () => {
@@ -56,13 +57,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
     });
   };
 
-  const padStartTime = (): string => {
+  const toPadTime = (
+    hours: number,
+    minutes: number,
+    seconds: number
+  ): string => {
     return `${hours.toString().padStart(2, "0")}:${minutes
       .toString()
       .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
   };
-
-  const onPressAddIcon = () => {};
 
   useEffect(() => {
     navigation.setOptions({
@@ -81,7 +84,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
 
   // useEffectフックを使用してタイマーのロジックを管理
   useEffect(() => {
-    let interval;
+    let interval: any;
 
     // isTimerActiveがtrueの場合、setIntervalを使用してタイマーをスタート
     if (isTimerActive) {
@@ -101,20 +104,36 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [formData, setFormData] = useState<string>("");
 
-  const handleSaveFormData = (data: string) => {
-    setFormData(data);
+  const handleCreateTimer = (timerTitle: string) => {
+    const maxId = numberingId();
+    const addTimerData: TimerData = {
+      id: maxId,
+      name: timerTitle,
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+      totalHour: 0,
+      totalMinute: 0,
+      totalSecond: 0,
+    };
+    setTimers([...timers, addTimerData]);
+  };
+
+  const numberingId = () => {
+    const length = timers.length;
+    const maxId = length == 0 ? 1 : length + 1;
+
+    return maxId;
   };
 
   return (
     <ScrollView>
-      <View
-        // onPress={() => {}}
-        style={styles.timerListItem}
-        // activeOpacity={1}
-      >
+      <View style={styles.timerListItem}>
         <View style={styles.leftContainer}>
           <Text style={styles.timerTitleText}>あああ</Text>
-          <Text style={styles.timerCountTitleText}>{padStartTime()}</Text>
+          <Text style={styles.timerCountTitleText}>
+            {toPadTime(hours, minutes, seconds)}
+          </Text>
         </View>
         <View style={styles.rightContainer}>
           <TouchableOpacity onPress={resetTimer}>
@@ -142,16 +161,55 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
               />
             )}
           </TouchableOpacity>
-          {/* <View style={styles.amountContainer}>
-            <Text style={styles.timerListItemAmount}>合計</Text>
-          </View> */}
         </View>
       </View>
+      {timers.map((timer) => {
+        return (
+          <View style={styles.timerListItem} key={timer.id}>
+            <View style={styles.leftContainer}>
+              <Text style={styles.timerTitleText}>{timer.name}</Text>
+              <Text style={styles.timerCountTitleText}>
+                {toPadTime(timer.hours, timer.minutes, timer.seconds)}
+              </Text>
+            </View>
+            <View style={styles.rightContainer}>
+              <TouchableOpacity onPress={resetTimer}>
+                <Feather
+                  name="refresh-cw"
+                  size={28}
+                  color="black"
+                  style={styles.resetIcon}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={toggleStartTimer}
+                style={{ width: 30 }}
+              >
+                {isTimerActive ? (
+                  <FontAwesome
+                    name="stop"
+                    size={28}
+                    color="black"
+                    style={styles.startIcon}
+                  />
+                ) : (
+                  <AntDesign
+                    name="caretright"
+                    size={28}
+                    color="black"
+                    style={styles.startIcon}
+                  />
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        );
+      })}
       <View>
         <AddTimerModal
           visible={modalVisible}
           onClose={() => setModalVisible(false)}
-          onSave={handleSaveFormData}
+          onAdd={handleCreateTimer}
         />
       </View>
     </ScrollView>
