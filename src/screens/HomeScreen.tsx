@@ -1,24 +1,30 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { AntDesign, FontAwesome } from "@expo/vector-icons";
+import { AntDesign, Feather, FontAwesome } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import {
+  Animated,
+  Button,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import CustomModal from "../components/AddTimerModal";
+import AddTimerModal from "../components/AddTimerModal";
 interface HomeScreenProps {
   navigation: any;
 }
 
 export const HomeScreen: React.FC<HomeScreenProps> = () => {
-  const [isActive, setIsActive] = useState(false);
+  const [timers, setTimers] = useState<TimerData[]>([]);
+  const [isTimerActive, setIsTimerActive] = useState(false);
   const [hours, setHours] = useState(0);
   const [minutes, setMinutes] = useState(59);
   const [seconds, setSeconds] = useState(58);
-
+  const navigation = useNavigation();
   const toggleStartTimer = () => {
-    setIsActive(!isActive);
+    setIsTimerActive(!isTimerActive);
   };
 
   // タイマーのリセット関数
@@ -26,7 +32,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
     setHours(0);
     setMinutes(0);
     setSeconds(0);
-    setIsActive(false);
+    setIsTimerActive(false);
   };
 
   const countUpTimer = () => {
@@ -56,47 +62,81 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
       .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
   };
 
+  const onPressAddIcon = () => {};
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerTitle: "タイマー一覧",
+      headerRight: () => (
+        <AntDesign
+          name="plus"
+          size={24}
+          color="black"
+          style={{ paddingRight: 15, paddingTop: 5 }}
+          onPress={() => setModalVisible(true)}
+        />
+      ),
+    });
+  }, []);
+
   // useEffectフックを使用してタイマーのロジックを管理
   useEffect(() => {
     let interval;
 
-    // isActiveがtrueの場合、setIntervalを使用してタイマーをスタート
-    if (isActive) {
+    // isTimerActiveがtrueの場合、setIntervalを使用してタイマーをスタート
+    if (isTimerActive) {
       interval = setInterval(() => {
         countUpTimer(); // タイマーの値をインクリメント
       }, 1000); // 1秒ごとに更新
     } else {
-      clearInterval(interval); // isActiveがfalseの場合、タイマーをクリア
+      clearInterval(interval); // isTimerActiveがfalseの場合、タイマーをクリア
     }
 
     // クリーンアップ関数を返す
-    // コンポーネントがアンマウントされるか、isActiveが変更されると実行される
+    // コンポーネントがアンマウントされるか、isTimerActiveが変更されると実行される
     return () => clearInterval(interval);
-  }, [isActive]); // isActiveが変更されるたびにuseEffectを再実行
+  }, [isTimerActive]); // isTimerActiveが変更されるたびにuseEffectを再実行
+
+  // フォーム周りテスト
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [formData, setFormData] = useState<string>("");
+
+  const handleSaveFormData = (data: string) => {
+    setFormData(data);
+  };
 
   return (
     <ScrollView>
-      <TouchableOpacity
-        onPress={() => {}}
+      <View
+        // onPress={() => {}}
         style={styles.timerListItem}
-        activeOpacity={1}
+        // activeOpacity={1}
       >
         <View style={styles.leftContainer}>
-          <Text style={styles.timerTextTitle}>{padStartTime()}</Text>
+          <Text style={styles.timerTitleText}>あああ</Text>
+          <Text style={styles.timerCountTitleText}>{padStartTime()}</Text>
         </View>
         <View style={styles.rightContainer}>
-          <TouchableOpacity onPress={toggleStartTimer}>
-            {isActive ? (
+          <TouchableOpacity onPress={resetTimer}>
+            <Feather
+              name="refresh-cw"
+              size={28}
+              color="black"
+              style={styles.resetIcon}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={toggleStartTimer} style={{ width: 30 }}>
+            {isTimerActive ? (
               <FontAwesome
                 name="stop"
-                size={24}
+                size={28}
                 color="black"
                 style={styles.startIcon}
               />
             ) : (
               <AntDesign
                 name="caretright"
-                size={24}
+                size={28}
                 color="black"
                 style={styles.startIcon}
               />
@@ -106,7 +146,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
             <Text style={styles.timerListItemAmount}>合計</Text>
           </View> */}
         </View>
-      </TouchableOpacity>
+      </View>
+      <View>
+        <AddTimerModal
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          onSave={handleSaveFormData}
+        />
+      </View>
     </ScrollView>
   );
 };
@@ -120,7 +167,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 0,
     marginTop: 0,
-    height: 325,
+    // height: 325,
   },
   leftContainer: {
     // flexDirection: "column",
@@ -128,38 +175,45 @@ const styles = StyleSheet.create({
     // justifyContent: "space-between",
   },
   timerListItem: {
-    height: 80,
+    backgroundColor: "#FFFFFF",
+    // height: 70,
     // 横並びにする
     flexDirection: "row",
     //要素間にスペースを開ける
     justifyContent: "space-between",
     alignItems: "flex-end",
-    paddingVertical: 12,
-    paddingHorizontal: 19,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
     borderBottomWidth: 1,
     borderColor: "rgba(0,0,0,0.15)",
   },
-  timerTextTitle: {
+  timerTitleText: {
+    fontSize: 16,
+  },
+  timerCountTitleText: {
     fontSize: 24,
-    lineHeight: 32,
   },
-  timerListItemDate: {
-    fontSize: 12,
-    lineHeight: 16,
-    color: "#848484",
-  },
+  // timerListItemDate: {
+  //   fontSize: 12,
+  //   lineHeight: 16,
+  //   color: "#848484",
+  // },
   rightContainer: {
-    flexDirection: "column",
-    alignItems: "flex-end",
+    flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
   },
-  timerListItemAmount: {
-    fontSize: 16,
-    fontWeight: "500",
-    paddingRight: 10,
+  // timerListItemAmount: {
+  //   fontSize: 16,
+  //   fontWeight: "500",
+  //   paddingRight: 10,
+  // },
+  resetIcon: {
+    paddingRight: 15,
+    color: "rgba(0,0,0,0.5)",
   },
   startIcon: {
-    paddingBottom: 15,
+    // paddingBottom: 15,
     color: "rgba(0,0,0,0.5)",
   },
   amountContainer: {
