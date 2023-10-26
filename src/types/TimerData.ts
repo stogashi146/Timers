@@ -8,4 +8,5 @@ interface TimerData {
   totalMinute?: number;
   totalSecond?: number;
   isTimerActive: boolean;
+  intervalId?: NodeJS.Timeout;
 }
